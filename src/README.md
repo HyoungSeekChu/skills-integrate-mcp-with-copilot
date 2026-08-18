@@ -5,7 +5,9 @@ A super simple FastAPI application that allows students to view and sign up for 
 ## Features
 
 - View all available extracurricular activities
-- Sign up for activities
+- Teachers can sign students up for activities or unregister them
+- Public visitors can view activities and participant lists
+- Teacher login protects registration changes
 
 ## Getting Started
 
@@ -30,7 +32,20 @@ A super simple FastAPI application that allows students to view and sign up for 
 | Method | Endpoint                                                          | Description                                                         |
 | ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
 | GET    | `/activities`                                                     | Get all activities with their details and current participant count |
-| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Sign up for an activity                                             |
+| GET    | `/auth/status`                                                    | Check whether the current browser has a teacher session              |
+| POST   | `/login`                                                          | Log in with a teacher username and password                           |
+| POST   | `/logout`                                                         | End the current teacher session                                      |
+| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Sign up for an activity (teacher only)                               |
+| DELETE | `/activities/{activity_name}/unregister?email=student@mergington.edu` | Unregister from an activity (teacher only)                        |
+
+## Teacher Login
+
+For this exercise, teacher accounts are configured in `teachers.json`. The default local account is:
+
+- Username: `teacher`
+- Password: `mergington2026`
+
+The credentials file stores a salted password hash rather than the plaintext password. Production deployments should additionally use a persistent session store and managed secrets.
 
 ## Data Model
 

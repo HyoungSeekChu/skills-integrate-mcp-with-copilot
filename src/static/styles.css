@@ -16,12 +16,51 @@ body {
 }
 
 header {
+  position: relative;
   text-align: center;
   padding: 20px 0;
   margin-bottom: 30px;
   background-color: #1a237e;
   color: white;
   border-radius: 5px;
+}
+
+.account-button {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  color: #1a237e;
+}
+
+.account-button:hover {
+  background: #e8eaf6;
+}
+
+.account-button svg,
+.icon-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.account-menu {
+  position: absolute;
+  z-index: 2;
+  top: 62px;
+  right: 16px;
+  min-width: 130px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+.account-menu button {
+  width: 100%;
 }
 
 header h1 {
@@ -190,6 +229,49 @@ button:hover {
 
 .hidden {
   display: none;
+}
+
+dialog {
+  width: min(400px, calc(100% - 32px));
+  margin: auto;
+  padding: 24px;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.dialog-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.icon-button {
+  display: inline-flex;
+  padding: 6px;
+  background: transparent;
+  color: #333;
+}
+
+#login-error {
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+@media (max-width: 600px) {
+  header {
+    padding-top: 72px;
+  }
+
+  .account-button {
+    left: 16px;
+    justify-content: center;
+  }
 }
 
 footer {
