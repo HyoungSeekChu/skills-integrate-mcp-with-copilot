@@ -2,7 +2,40 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitiesList = document.getElementById("activities-list");
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
+  const signupContainer = document.getElementById("signup-container");
   const messageDiv = document.getElementById("message");
+  const accountButton = document.getElementById("account-button");
+  const accountLabel = document.getElementById("account-label");
+  const accountMenu = document.getElementById("account-menu");
+  const openLoginButton = document.getElementById("open-login-button");
+  const logoutButton = document.getElementById("logout-button");
+  const loginDialog = document.getElementById("login-dialog");
+  const loginForm = document.getElementById("login-form");
+  const loginError = document.getElementById("login-error");
+  const closeLoginButton = document.getElementById("close-login-button");
+  let isTeacher = false;
+
+  lucide.createIcons();
+
+  function escapeHtml(value) {
+    const element = document.createElement("div");
+    element.textContent = value;
+    return element.innerHTML;
+  }
+
+  function updateAuthControls() {
+    accountLabel.textContent = isTeacher ? "Teacher" : "Teacher login";
+    openLoginButton.classList.toggle("hidden", isTeacher);
+    logoutButton.classList.toggle("hidden", !isTeacher);
+    signupContainer.classList.toggle("hidden", !isTeacher);
+  }
+
+  async function checkAuth() {
+    const response = await fetch("/auth/status");
+    const result = await response.json();
+    isTeacher = result.authenticated;
+    updateAuthControls();
+  }
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -28,19 +61,21 @@ document.addEventListener("DOMContentLoaded", () => {
               <h5>Participants:</h5>
               <ul class="participants-list">
                 ${details.participants
-                  .map(
-                    (email) =>
-                      `<li><span class="participant-email">${email}</span><button class="delete-btn" data-activity="${name}" data-email="${email}">❌</button></li>`
-                  )
+                  .map((email) => {
+                    const removeButton = isTeacher
+                      ? `<button class="delete-btn" data-activity="${escapeHtml(name)}" data-email="${escapeHtml(email)}" aria-label="Unregister ${escapeHtml(email)}">Remove</button>`
+                      : "";
+                    return `<li><span class="participant-email">${escapeHtml(email)}</span>${removeButton}</li>`;
+                  })
                   .join("")}
               </ul>
             </div>`
             : `<p><em>No participants yet</em></p>`;
 
         activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
+          <h4>${escapeHtml(name)}</h4>
+          <p>${escapeHtml(details.description)}</p>
+          <p><strong>Schedule:</strong> ${escapeHtml(details.schedule)}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="participants-container">
             ${participantsHTML}
@@ -66,6 +101,54 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error fetching activities:", error);
     }
   }
+
+  accountButton.addEventListener("click", () => {
+    const isOpen = !accountMenu.classList.toggle("hidden");
+    accountButton.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  openLoginButton.addEventListener("click", () => {
+    accountMenu.classList.add("hidden");
+    accountButton.setAttribute("aria-expanded", "false");
+    loginError.classList.add("hidden");
+    loginDialog.showModal();
+  });
+
+  closeLoginButton.addEventListener("click", () => loginDialog.close());
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: document.getElementById("username").value,
+        password: document.getElementById("password").value,
+      }),
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      loginError.textContent = result.detail || "Login failed";
+      loginError.classList.remove("hidden");
+      return;
+    }
+
+    isTeacher = true;
+    updateAuthControls();
+    loginForm.reset();
+    loginDialog.close();
+    fetchActivities();
+  });
+
+  logoutButton.addEventListener("click", async () => {
+    await fetch("/logout", { method: "POST" });
+    isTeacher = false;
+    accountMenu.classList.add("hidden");
+    accountButton.setAttribute("aria-expanded", "false");
+    updateAuthControls();
+    fetchActivities();
+  });
 
   // Handle unregister functionality
   async function handleUnregister(event) {
@@ -156,5 +239,5 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Initialize app
-  fetchActivities();
+  checkAuth().then(fetchActivities);
 });
